@@ -1,9 +1,9 @@
 <template>
     <el-container>
         <el-header>
-            Schedule Backend
-            <el-dropdown @command="handleCommand">
-                <el-button>
+            <div id="headerTitle">Schedule Backend</div>
+            <el-dropdown @command="infoMenuHandleCommand">
+                <el-button id="infoButton">
                     {{ user.username }}
                     <i class="el-icon-arrow-down el-icon--right"></i>
                 </el-button>
@@ -52,7 +52,7 @@
 
                 <span slot="footer" class="dialog-footer">
                     <el-button @click="userInfoModifyDialogVisible = false">取 消</el-button>
-                    <el-button type="primary" @click="sendModifyReq">确 定</el-button>
+                    <el-button type="primary" @click="sendInfoModifyReq">确 定</el-button>
                 </span>
             </el-dialog>
             <el-dialog title="Api获取" :visible.sync="apiDialogVisible" width="40%">
@@ -71,25 +71,37 @@
                         <el-menu default-active="2" class="el-menu-vertical-demo">
                             <el-submenu index="1">
                                 <template slot="title">
-                                <i class="el-icon-date"></i>
-                                <span>日程</span>
+                                    <i class="el-icon-date"></i>
+                                    <span>日程</span>
                                 </template>
                                 <el-menu-item-group>
                                     <el-menu-item @click="sendCourseEffReq" index="1-1">有效日程</el-menu-item>
                                     <el-menu-item @click="sendCourseAllReq" index="1-2">所有日程</el-menu-item>
                                 </el-menu-item-group>
                             </el-submenu>
-                            <el-menu-item index="2" disabled>
+                            <el-menu-item @click="this.jumpToUploadPage" index="2">
                                 <i class="el-icon-document"></i>
                                 <span>文件上传</span>
                             </el-menu-item>
-                            <el-menu-item @click="newCourseDialogVisible = true" index="3">
-                                <i class="el-icon-notebook-2"></i>
-                                <span>添加课程</span>
-                            </el-menu-item>
-                            <el-menu-item @click="ensureClearCourse" index="4">
-                                <i class="el-icon-delete"></i>
-                                <span>清除课程</span>
+                            <el-submenu index="3">
+                                <template slot="title">
+                                    <i class="el-icon-setting"></i>
+                                    <span>操作</span>
+                                </template>
+                                <el-menu-item-group>
+                                    <el-menu-item @click="newCourseDialogVisible = true" index="3-1">
+                                        <i class="el-icon-notebook-2"></i>
+                                        <span>添加课程</span>
+                                    </el-menu-item>
+                                    <el-menu-item @click="ensureClearCourse" index="3-2">
+                                        <i class="el-icon-delete"></i>
+                                        <span>清除课程</span>
+                                    </el-menu-item>
+                                </el-menu-item-group>
+                            </el-submenu>
+                            <el-menu-item @click="conditionSelectDialogVisible = true" index="4">
+                                <i class="el-icon-search"></i>
+                                <span>筛选</span>
                             </el-menu-item>
                         </el-menu>
                     </el-col>
@@ -98,77 +110,86 @@
             <el-main>
                 <router-view />
             </el-main>
-                <el-dialog
-                title="添加课程"
-                :visible.sync="newCourseDialogVisible"
-                width="30%"
+            <el-dialog title="添加课程" :visible.sync="newCourseDialogVisible" width="30%"
                 :before-close="newCourseDialogHandleClose">
-                    <el-form ref="form" :model="newCourseForm" label-width="80px">
-                        <el-form-item label="课程名：">
-                            <el-input v-model="newCourseForm.name"></el-input>
-                        </el-form-item>
-                        <el-form-item label="日期：">
-                            <el-select v-model="newCourseForm.dayOfWeek" placeholder="请选择">
-                                <el-option
-                                v-for="item in daysOfWeek"
-                                :key="item.value"
-                                :label="item.label"
-                                :value="item.value">
-                                </el-option>
-                            </el-select>
-                        </el-form-item>
-                        <el-form-item label="时间：">
-                            <el-time-select
-                                placeholder="起始时间"
-                                v-model="newCourseForm.startTime"
-                                :picker-options="{
-                                start: '06:30',
-                                step: '00:05',
-                                end: '20:30'
-                                }">
-                            </el-time-select>
-                            <el-time-select
-                                placeholder="结束时间"
-                                v-model="newCourseForm.endTime"
-                                :picker-options="{
-                                start: '06:30',
-                                step: '00:05',
-                                end: '20:30',
-                                minTime: newCourseForm.startTime
-                                }">
-                            </el-time-select>
-                        </el-form-item>
-                        <el-form-item label="地点：">
-                            <el-input v-model="newCourseForm.place"></el-input>
-                        </el-form-item>
-                        <el-form-item label="讲师：">
-                            <el-input v-model="newCourseForm.teacher"></el-input>
-                        </el-form-item>
-                        <el-form-item label="开始周：">
-                            <el-input-number v-model="newCourseForm.startWeek" :min="1" :max="30"></el-input-number>
-                        </el-form-item>
-                        <el-form-item label="结束周：">
-                            <el-input-number v-model="newCourseForm.endWeek" :min="1" :max="30"></el-input-number>
-                        </el-form-item>
-                        <el-form-item label="单双周：">
-                            <el-radio v-model="newCourseForm.oddWeek" label="0">否</el-radio>
-                            <el-radio v-model="newCourseForm.oddWeek" label="1">单周</el-radio>
-                            <el-radio v-model="newCourseForm.oddWeek" label="2">双周</el-radio>
-                        </el-form-item>
-                        <el-form-item label="学分：">
-                            <el-input-number v-model="newCourseForm.credit" :precision="1" :step="0.5" :max="20"></el-input-number>
-                        </el-form-item>
-                    </el-form>
+                <el-form ref="newCourseForm" :model="newCourseForm" :rules="newCourseFormRules" label-width="80px">
+                    <el-form-item label="课程名：" prop="name">
+                        <el-input v-model="newCourseForm.name"></el-input>
+                    </el-form-item>
+                    <el-form-item label="日期：" prop="dayOfWeek">
+                        <el-select v-model="newCourseForm.dayOfWeek" placeholder="请选择">
+                            <el-option v-for="item in daysOfWeek" :key="item.value" :label="item.label" :value="item.value">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="时间：" prop="startTime">
+                        <el-time-select placeholder="起始时间" v-model="newCourseForm.startTime" :picker-options="{
+                            start: '06:30',
+                            step: '00:05',
+                            end: '20:30'
+                        }">
+                        </el-time-select>
+                        <el-time-select placeholder="结束时间" v-model="newCourseForm.endTime" :picker-options="{
+                            start: '06:30',
+                            step: '00:05',
+                            end: '20:30',
+                            minTime: newCourseForm.startTime
+                        }">
+                        </el-time-select>
+                    </el-form-item>
+                    <el-form-item label="地点：" prop="place">
+                        <el-input v-model="newCourseForm.place"></el-input>
+                    </el-form-item>
+                    <el-form-item label="讲师：" prop="teacher">
+                        <el-input v-model="newCourseForm.teacher"></el-input>
+                    </el-form-item>
+                    <el-form-item label="开始周：" prop="startWeek">
+                        <el-input-number v-model="newCourseForm.startWeek" :controls="false" :min="1"
+                            :max="30"></el-input-number>
+                    </el-form-item>
+                    <el-form-item label="结束周：" prop="endWeek">
+                        <el-input-number v-model="newCourseForm.endWeek" :controls="false" :min="1"
+                            :max="30"></el-input-number>
+                    </el-form-item>
+                    <el-form-item label="单双周：" prop="oddWeek">
+                        <el-radio v-model="newCourseForm.oddWeek" label="0">否</el-radio>
+                        <el-radio v-model="newCourseForm.oddWeek" label="1">单周</el-radio>
+                        <el-radio v-model="newCourseForm.oddWeek" label="2">双周</el-radio>
+                    </el-form-item>
+                    <el-form-item label="学分：" prop="credit">
+                        <el-input-number v-model="newCourseForm.credit" :precision="1" :step="0.25"
+                            :max="20"></el-input-number>
+                    </el-form-item>
+                </el-form>
                 <span slot="footer" class="dialog-footer">
                     <el-button @click="newCourseDialogVisible = false">取 消</el-button>
-                    <el-button type="primary" @click="sendAddCourseReq">确 定</el-button>
+                    <el-button type="primary" @click="addCourseSubmit('newCourseForm')">确 定</el-button>
                 </span>
-                </el-dialog>
+            </el-dialog>
+            <el-dialog title="条件筛选" :visible.sync="conditionSelectDialogVisible" width="30%"
+                :before-close="conditionSelectDialogHandleClose">
+                <el-form ref="conditionSelForm" :model="conditionSelForm" :rules="conditionSelRules" label-width="80px">
+                    <el-form-item label="类型：" prop="isEff">
+                        <el-radio v-model="conditionSelForm.isEff" label="true">有效</el-radio>
+                        <el-radio v-model="conditionSelForm.isEff" label="false">所有</el-radio>
+                    </el-form-item>
+                    <el-form-item label="日期：" prop="dayOfWeek">
+                        <el-select v-model="conditionSelForm.dayOfWeek" placeholder="请选择">
+                            <el-option v-for="item in daysOfWeek" :key="item.value" :label="item.label" :value="item.value">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-form>
+                <span slot="footer" class="dialog-footer">
+                    <el-button @click="conditionSelectDialogVisible = false">取 消</el-button>
+                    <el-button type="primary" @click="conditionSelectDialogSubmit('conditionSelForm')">确 定</el-button>
+                </span>
+            </el-dialog>
         </el-container>
     </el-container>
 </template>
 <script>
-import axios from 'axios';
+import authAxios from '@/util/authAxios';
 
 const options = {
     mounted: function () {
@@ -195,22 +216,22 @@ const options = {
             daysOfWeek: [{
                 value: 'Monday',
                 label: '周一'
-                }, {
+            }, {
                 value: 'Tuesday',
                 label: '周二'
-                }, {
+            }, {
                 value: 'Wednesday',
                 label: '周三'
-                }, {
+            }, {
                 value: 'Thursday',
                 label: '周四'
-                }, {
+            }, {
                 value: 'Friday',
                 label: '周五'
-                }, {
+            }, {
                 value: 'Saturday',
                 label: '周六'
-                }, {
+            }, {
                 value: 'Sunday',
                 label: '周日'
             }],
@@ -227,6 +248,34 @@ const options = {
                 oddWeek: '',
                 credit: ''
             },
+            newCourseFormRules: {
+                name: [{ required: true, message: '课程名不能为空', trigger: 'blur' }],
+                dayOfWeek: [{ required: true, message: '日期不能为空', trigger: 'change' }],
+                startTime: [{ required: true, message: '开始时间不能为空', trigger: 'change' }],
+                endTime: [{ required: true, message: '结束时间不能为空', trigger: 'change' }],
+                place: [{ required: true, message: '地点不能为空', trigger: 'blur' }],
+                teacher: [{ required: true, message: '讲师不能为空', trigger: 'blur' }],
+                startWeek: [
+                    { required: true, message: '开始周不能为空', trigger: 'change' },
+                    { validator: this.validateWeeks, trigger: 'blur' }
+                ],
+                endWeek: [
+                    { required: true, message: '结束周不能为空', trigger: 'change' },
+                    { validator: this.validateWeeks, trigger: 'blur' }
+                ],
+                oddWeek: [{ required: true, message: '单双周不能为空', trigger: 'change' }],
+                credit: [{ required: true, message: '学分不能为空', trigger: 'blur' }]
+            },
+            conditionSelectDialogVisible: false,
+            conditionSelForm: {},
+            conditionSelRules: {
+                isEff: [
+                    { required: true, message: '请选择类型', trigger: 'change' }
+                ],
+                dayOfWeek: [
+                    { required: true, message: '请选择日期', trigger: 'change' }
+                ]
+            },
         }
     },
     methods: {
@@ -236,7 +285,7 @@ const options = {
             this.user.termStartDate = localStorage.getItem('termStartDate');
             this.user.termEndDate = localStorage.getItem('termEndDate');
         },
-        handleCommand(command) {
+        infoMenuHandleCommand(command) {
             switch (command) {
                 case 'info':
                     this.userInfoDialogVisible = true;
@@ -255,7 +304,7 @@ const options = {
         },
         async sendLogoutReq() {
             try {
-                const resp = await axios.post('http://127.0.0.1:8080/user/logout', {
+                const resp = await authAxios.post('http://127.0.0.1:8080/user/logout', {
                     uid: this.user.uid
                 });
                 if (resp.data.code === 10021) {
@@ -272,6 +321,10 @@ const options = {
                     });
                     localStorage.clear();
                     setTimeout(this.jumpToLogin, 1000);
+                } else if (resp.data.code === 10000) {
+                    this.$message.warning('登录过期，请重新登陆');
+                    this.$router.push('/');
+                    return;
                 }
             } catch (error) {
                 this.$message.error('Server Err');
@@ -282,24 +335,26 @@ const options = {
         },
         async sendApiReq() {
             try {
-                const resp = await axios.post('http://127.0.0.1:8080/user/api', {
+                const resp = await authAxios.post('http://127.0.0.1:8080/user/api', {
                     username: this.user.username
                 });
                 if (resp.data.code === 10031) {
-                    console.log(resp.data.data.apiToken);
                     this.user.apiToken = resp.data.data.apiToken;
                 } else if (resp.data.code === 10030) {
                     this.$message({
                         message: '获取失败, 请联系管理员处理',
                         type: 'warning'
                     });
+                } else if (resp.data.code === 10000) {
+                    this.$message.warning('登录过期，请重新登陆');
+                    this.$router.push('/');
+                    return;
                 }
             } catch (error) {
                 this.$message.error('Server Err');
-                console.log(error);
             }
         },
-        async sendModifyReq() {
+        async sendInfoModifyReq() {
             const modifyData = {
                 uid: this.user.uid
             };
@@ -322,7 +377,7 @@ const options = {
                 return;
             }
             try {
-                const resp = await axios.post('http://127.0.0.1:8080/user/modify', modifyData);
+                const resp = await authAxios.post('http://127.0.0.1:8080/user/modify', modifyData);
                 if (resp.data.code === 10041) {
                     if (modifyData.password === undefined || modifyData.password === null) {
                         this.$message({
@@ -347,6 +402,10 @@ const options = {
                         message: '修改失败, 请联系管理员',
                         type: 'warning'
                     });
+                } else if (resp.data.code === 10000) {
+                    this.$message.warning('登录过期，请重新登陆');
+                    this.$router.push('/');
+                    return;
                 }
                 this.userInfoModifyDialogVisible = false;
             } catch (error) {
@@ -355,7 +414,7 @@ const options = {
         },
         newCourseDialogHandleClose() {
             this.newCourseDialogVisible = false;
-            this.newCourseForm =  {
+            this.newCourseForm = {
                 uid: '',
                 name: '',
                 place: '',
@@ -369,10 +428,28 @@ const options = {
                 credit: ''
             }
         },
+        validateWeeks(rule, value, callback) {
+            const startWeek = Number(this.newCourseForm.startWeek);
+            const endWeek = Number(this.newCourseForm.endWeek);
+            if (startWeek && endWeek && startWeek > endWeek) {
+                callback(new Error('开始周必须小于或等于结束周'));
+            } else {
+                callback();
+            }
+        },
+        addCourseSubmit(formName) {
+            this.$refs[formName].validate((valid) => {
+                if (valid) {
+                    this.sendAddCourseReq();
+                } else {
+                    return false;
+                }
+            });
+        },
         async sendAddCourseReq() {
             try {
                 this.newCourseForm.uid = this.user.uid;
-                const resp = await axios.post('http://127.0.0.1:8080/sched/ins', this.newCourseForm);
+                const resp = await authAxios.post('http://127.0.0.1:8080/sched/ins', this.newCourseForm);
                 if (resp.data.code === 20051) {
                     this.$message({
                         message: '添加成功',
@@ -388,14 +465,22 @@ const options = {
                 }
             } catch (error) {
                 this.$message.error('Server Err');
-                console.log(error);
             }
         },
         sendCourseEffReq() {
+            this.jumpToSchedulePage();
             this.$store.dispatch('sendCourseEffReq', this.user);
         },
         sendCourseAllReq() {
+            this.jumpToSchedulePage();
             this.$store.dispatch('sendCourseAllReq', this.user);
+        },
+        sendCourseSelReq() {
+            this.jumpToSchedulePage();
+            this.$store.dispatch('sendCourseSelReq', {
+                user: this.user,
+                conditionSelForm: this.conditionSelForm
+            });
         },
         ensureClearCourse() {
             this.$confirm('此操作将清除所有课程, 是否继续?', '提示', {
@@ -408,12 +493,12 @@ const options = {
                 this.$message({
                     type: 'info',
                     message: '已取消清除'
-                });          
+                });
             });
         },
         async sendClearReq() {
             try {
-                const resp = await axios.post('http://127.0.0.1:8080/sched/del', {
+                const resp = await authAxios.post('http://127.0.0.1:8080/sched/del', {
                     uid: this.user.uid
                 });
                 if (resp.data.code === 20061) {
@@ -421,6 +506,10 @@ const options = {
                         type: 'success',
                         message: '清除成功!'
                     });
+                } else if (resp.data.code === 10000) {
+                    this.$message.warning('登录过期，请重新登陆');
+                    this.$router.push('/');
+                    return;
                 } else {
                     this.$message({
                         type: 'warning',
@@ -431,44 +520,47 @@ const options = {
             } catch (error) {
                 this.$message.error('Server Err');
             }
+        },
+        conditionSelectDialogHandleClose() {
+            this.conditionSelectDialogVisible = false;
+            this.conditionSelForm = {};
+        },
+        conditionSelectDialogSubmit(formName) {
+            this.$refs[formName].validate((valid) => {
+                if (valid) {
+                    this.sendCourseSelReq();
+                    this.conditionSelectDialogHandleClose();
+                } else {
+                    return false;
+                }
+            });
+        },
+        jumpToSchedulePage() {
+            this.$router.push('/backend/schedule');
+        },
+        jumpToUploadPage() {
+            this.$router.push('/backend/fileUpload');
         }
     }
 }
 export default options;
 </script>
 <style>
-.el-header,
-.el-footer {
-    background-color: #B3C0D1;
-    color: #333;
+.upload {
+    padding: 15%;
     text-align: center;
-    line-height: 60px;
 }
 
-.el-aside {
-    background-color: #D3DCE6;
-    color: #333;
+#headerTitle {
+    flex: 1;
     text-align: center;
-    line-height: 200px;
 }
 
-.el-main {
-    background-color: #E9EEF3;
-    color: #333;
-    text-align: center;
-    line-height: 160px;
-}
-
-.el-dropdown-link {
-    cursor: pointer;
-    color: #409EFF;
-}
-
-.el-icon-arrow-down {
-    font-size: 12px;
+#infoButton {
+    align-self: flex-end;
 }
 
 #modifyInputBox {
-    width: 50%;
+    width: 75%;
 }
 </style>

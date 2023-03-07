@@ -1,22 +1,26 @@
 
-import router from '@/router';
-
 <template>
     <div>
-        <el-container>
-            <el-header>Schedule</el-header>
+        <el-container style="height: 100vh;">
+            <el-header>
+                <div class="headerTitle">Schedule</div>
+            </el-header>
             <el-main>
-                <router-view/>
+                <router-view />
             </el-main>
         </el-container>
     </div>
 </template>
-<style scoped>
-.el-header,
-.el-footer {
-    background-color: #B3C0D1;
-    color: #333;
+<style>
+.headerTitle {
+    flex: 1;
     text-align: center;
-    line-height: 60px;
+}
+
+.outsider {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* height: 100%; */
 }
 </style>

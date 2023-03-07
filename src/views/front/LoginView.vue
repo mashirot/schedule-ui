@@ -1,20 +1,24 @@
 <template>
-    <div>
-        <el-container>
-            <el-header>Login</el-header>
-            <el-main>
-                <el-form ref="form" :model="loginForm" label-width="80px">
-                    <el-form-item label="用户名">
-                        <el-input placeholder="请输入用户名" v-model="loginForm.username"></el-input>
-                    </el-form-item>
-                    <el-form-item label="密码">
-                        <el-input placeholder="请输入密码" v-model="loginForm.password" show-password></el-input>
-                    </el-form-item>
-                </el-form>
-                <el-button @click="sendLoginReq" type="primary" plain>登录</el-button>
-                <el-button @click="jumpToRegPage" type="primary" plain>注册</el-button>
-            </el-main>
-        </el-container>
+    <div class="outsider">
+        <div id="login">
+            <el-container>
+                <el-header>
+                    <div class="headerTitle">Login</div>
+                </el-header>
+                <el-main>
+                    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" label-width="80px">
+                        <el-form-item label="用户名" prop="username">
+                            <el-input placeholder="请输入用户名" v-model="loginForm.username"></el-input>
+                        </el-form-item>
+                        <el-form-item label="密码" prop="password">
+                            <el-input placeholder="请输入密码" v-model="loginForm.password" show-password></el-input>
+                        </el-form-item>
+                    </el-form>
+                    <el-button @click="submitVerify('loginForm')" type="primary" plain>登录</el-button>
+                    <el-button @click="jumpToRegPage" type="primary" plain>注册</el-button>
+                </el-main>
+            </el-container>
+        </div>
     </div>
 </template>
 <script>
@@ -27,6 +31,15 @@ const options = {
             loginForm: {
                 username: '',
                 password: ''
+            },
+            loginRules: {
+                username: [
+                    { required: true, message: '用户名不能为空', trigger: 'blur' }
+                ],
+                password: [
+                    { required: true, message: '密码不能为空', trigger: 'blur' },
+                    { min: 8, message: '密码长度不能小于8位', trigger: 'blur' }
+                ]
             }
         }
     },
@@ -34,7 +47,7 @@ const options = {
         async sendLoginReq() {
             const loginSubmitForm = {
                 username: this.loginForm.username,
-                password: md5(this.loginForm.username, this.loginForm.password)
+                password: md5(this.loginForm.username + this.loginForm.password)
             }
             try {
                 const resp = await axios.post('http://127.0.0.1:8080/user/login', loginSubmitForm);
@@ -47,6 +60,7 @@ const options = {
                     localStorage.setItem('username', resp.data.data.username);
                     localStorage.setItem('termStartDate', resp.data.data.termStartDate);
                     localStorage.setItem('termEndDate', resp.data.data.termEndDate);
+                    this.$store.dispatch('updateAuthToken', resp.data.data.authToken);
                     setTimeout(this.jumpToBackend, 1500);
                 } else if (resp.data.code === 10010) {
                     this.$message({
@@ -63,36 +77,22 @@ const options = {
         },
         jumpToBackend() {
             this.$router.push('/backend');
+        },
+        submitVerify(formName) {
+            this.$refs[formName].validate((valid) => {
+                if (valid) {
+                    this.sendLoginReq();
+                } else {
+                    return false;
+                }
+            });
         }
     }
 };
 export default options;
 </script>
 <style scoped>
-.el-header,
-.el-footer {
-    background-color: #B3C0D1;
-    color: #333;
-    text-align: center;
-    line-height: 60px;
-}
-
-.el-aside {
-    background-color: #D3DCE6;
-    color: #333;
-    text-align: center;
-    line-height: 200px;
-}
-
-.el-main {
-    background-color: #E9EEF3;
-    color: #333;
-    text-align: center;
-    line-height: 160px;
-}
-
-body>.el-container {
-    margin-bottom: 40px;
+#login {
+    width: 50%;
 }
 </style>
-  
