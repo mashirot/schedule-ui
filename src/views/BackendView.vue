@@ -189,6 +189,7 @@
     </el-container>
 </template>
 <script>
+import API_URL from '@/api';
 import authAxios from '@/util/authAxios';
 
 const options = {
@@ -304,7 +305,7 @@ const options = {
         },
         async sendLogoutReq() {
             try {
-                const resp = await authAxios.post('http://127.0.0.1:8080/user/logout', {
+                const resp = await authAxios.post('https://api.schedule.mashiro.ski/user/logout', {
                     uid: this.user.uid
                 });
                 if (resp.data.code === 10021) {
@@ -335,7 +336,7 @@ const options = {
         },
         async sendApiReq() {
             try {
-                const resp = await authAxios.post('http://127.0.0.1:8080/user/api', {
+                const resp = await authAxios.post('https://api.schedule.mashiro.ski/user/api', {
                     username: this.user.username
                 });
                 if (resp.data.code === 10031) {
@@ -377,7 +378,7 @@ const options = {
                 return;
             }
             try {
-                const resp = await authAxios.post('http://127.0.0.1:8080/user/modify', modifyData);
+                const resp = await authAxios.post(API_URL + '/user/modify', modifyData);
                 if (resp.data.code === 10041) {
                     if (modifyData.password === undefined || modifyData.password === null) {
                         this.$message({
@@ -449,7 +450,7 @@ const options = {
         async sendAddCourseReq() {
             try {
                 this.newCourseForm.uid = this.user.uid;
-                const resp = await authAxios.post('http://127.0.0.1:8080/sched/ins', this.newCourseForm);
+                const resp = await authAxios.post('https://api.schedule.mashiro.ski/sched/ins', this.newCourseForm);
                 if (resp.data.code === 20051) {
                     this.$message({
                         message: '添加成功',
@@ -498,7 +499,7 @@ const options = {
         },
         async sendClearReq() {
             try {
-                const resp = await authAxios.post('http://127.0.0.1:8080/sched/del', {
+                const resp = await authAxios.post('https://api.schedule.mashiro.ski/sched/del', {
                     uid: this.user.uid
                 });
                 if (resp.data.code === 20061) {

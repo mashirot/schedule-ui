@@ -89,6 +89,7 @@
     </div>
 </template>
 <script>
+import API_URL from '@/api';
 import authAxios from '@/util/authAxios.js'
 const options = {
     mounted: function () {
@@ -153,7 +154,7 @@ const options = {
         async sendCourseUpdateReq() {
             try {
                 this.modifyCourseForm.uid = this.user.uid;
-                const resp = await authAxios.post('http://127.0.0.1:8080/sched/update', this.modifyCourseForm);
+                const resp = await authAxios.post(API_URL + '/sched/update', this.modifyCourseForm);
                 if (resp.data.code === 20071) {
                     this.$message({
                         message: '修改成功',
@@ -178,7 +179,7 @@ const options = {
         },
         async delCourse(index) {
             try {
-                const resp = await authAxios.post('http://127.0.0.1:8080/sched/del', {
+                const resp = await authAxios.post(API_URL + '/sched/del', {
                     uid: this.user.uid,
                     courseId: this.courses[index].courseId
                 });

@@ -33,6 +33,7 @@
     </div>
 </template>
 <script>
+import API_URL from '@/api';
 import axios from 'axios';
 import md5 from 'js-md5'
 const options = {
@@ -71,7 +72,7 @@ const options = {
                 termEndDate: this.regForm.termDate[1]
             };
             try {
-                const resp = await axios.post('http://127.0.0.1:8080/user/register', regSubmitForm);
+                const resp = await axios.post(API_URL + '/user/register', regSubmitForm);
                 if (resp.data.code === 10051) {
                     this.$message({
                         message: '注册成功, 2s后跳转登录',

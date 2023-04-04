@@ -22,6 +22,7 @@
     </div>
 </template>
 <script>
+import API_URL from '@/api';
 import axios from 'axios';
 import md5 from 'js-md5';
 
@@ -50,7 +51,7 @@ const options = {
                 password: md5(this.loginForm.username + this.loginForm.password)
             }
             try {
-                const resp = await axios.post('http://127.0.0.1:8080/user/login', loginSubmitForm);
+                const resp = await axios.post(API_URL + '/user/login', loginSubmitForm);
                 if (resp.data.code === 10011) {
                     this.$message({
                         message: '登录成功, 将自动跳转',
