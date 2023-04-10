@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import authAxios from '@/util/authAxios.js';
 import { Message } from 'element-ui'
 import router from '@/router/index.js'
+import API_URL from '@/api';
 
 Vue.use(Vuex)
 
@@ -30,7 +31,7 @@ export default new Vuex.Store({
   actions: {
     async sendCourseEffReq(context, user) {
       try {
-        const resp = await authAxios.post('https://api.schedule.mashiro.ski/sched/eff', {
+        const resp = await authAxios.post(API_URL + '/sched/eff', {
           uid: user.uid,
           termStartDate: user.termStartDate
         });
@@ -49,7 +50,7 @@ export default new Vuex.Store({
     },
     async sendCourseAllReq(context, user) {
       try {
-        const resp = await authAxios.post('https://api.schedule.mashiro.ski/sched/all', {
+        const resp = await authAxios.post(API_URL + '/sched/all', {
           uid: user.uid,
         });
         if (resp.data.code === 20010) {
@@ -74,7 +75,7 @@ export default new Vuex.Store({
           selData.termStartDate = user.termStartDate;
         }
         selData.dayOfWeek = conditionSelForm.dayOfWeek;
-        const resp = await authAxios.post('https://api.schedule.mashiro.ski/sched/sel', selData);
+        const resp = await authAxios.post(API_URL + '/sched/sel', selData);
         if (resp.data.code === 20010) {
           Message.warning('获取课程信息失败, 请联系管理员处理');
           return;
