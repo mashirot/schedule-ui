@@ -9,15 +9,27 @@
     </el-input>
   </div>
   <div class="button">
-    <el-button type="primary">登录</el-button>
+    <el-button @click="subLogin" type="primary">登录</el-button>
     <el-button @click="$router.push(`/register`)">注册</el-button>
   </div>
 </template>
 <script setup lang="ts">
+import axios from 'axios';
 import { ref } from 'vue';
 
 let username = ref();
 let password = ref();
+
+function subLogin() {
+  axios.post("/user/login", {
+    username,
+    password
+  }).then(result => {
+
+  }).catch(error => {
+
+  });
+}
 
 </script>
 <style scoped>
@@ -26,10 +38,10 @@ let password = ref();
   flex-direction: column;
   justify-content: space-evenly;
   padding: 0 70px;
-  height: 175px;
 }
 
 .input .el-input {
+  margin: 10px 0;
   height: 45px;
 }
 

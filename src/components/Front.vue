@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div class="login">
+    <div class="inner-container">
       <slot></slot>
       <RouterView />
     </div>
@@ -36,7 +36,7 @@ function jump2Github() {
   background-attachment: fixed;
 }
 
-.login {
+.inner-container {
   position: absolute;
   top: 50%;
   left: 50%;
