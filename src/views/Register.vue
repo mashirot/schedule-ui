@@ -27,7 +27,7 @@
             <template #prepend><font-awesome-icon icon="fa-shield-halved" /></template>
           </el-input>
         </el-form-item>
-        <div class="verifyCode">Code</div>
+        <img class="verifyCode" :src="verifyCodeImg" @click="getCaptcha" />
       </div>
     </el-form>
   </div>
@@ -41,6 +41,11 @@ import axios from 'axios';
 import { ElMessage } from 'element-plus/lib/components/index.js';
 import type { FormRules } from 'element-plus/lib/components/index.js';
 import { reactive, ref, toRefs, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUtilStore } from '@/stores/counter';
+
+const utils = useUtilStore();
+const router = useRouter();
 
 interface RegForm {
   username: string | null,
@@ -58,9 +63,7 @@ const regForm = reactive<RegForm>({
   verifyCode: ""
 });
 
-const { username, password, confirmPassword, date } = toRefs(regForm);
-
-let verifyCode = ref();
+const { username, password, confirmPassword, date, verifyCode } = toRefs(regForm);
 
 // 表单校验
 const regRules = reactive<FormRules>({
@@ -89,7 +92,7 @@ const regRules = reactive<FormRules>({
 });
 
 function checkChinese(rule: any, value: any, callback: any) {
-  if (hasNoChinese(value)) {
+  if (!utils.hasNoChinese(value)) {
     callback(new Error("请输入英文及数字"));
   }
   callback();
@@ -105,24 +108,35 @@ function checkPassword(rule: any, value: any, callback: any) {
   callback(new Error("请确认密码一致"));
 }
 
-function hasNoChinese(value: string): boolean {
-  const reg = /[\u4E00-\u9FA5]/g;
-  return value.search(reg) !== -1;
-}
-
+// 提交前校验
 function isAllInfoValid(): boolean {
   let flag = true;
   flag &&= username.value!.length >= 6;
-  flag &&= hasNoChinese(username.value as string);
+  flag &&= utils.hasNoChinese(username.value as string);
   flag &&= password.value!.length >= 6 && password.value!.length <= 30;
-  flag &&= hasNoChinese(password.value as string);
+  flag &&= utils.hasNoChinese(password.value as string);
   flag &&= confirmPassword.value === password.value;
-  flag &&= hasNoChinese(confirmPassword.value as string);
+  flag &&= utils.hasNoChinese(confirmPassword.value as string);
   flag &&= date.value != null;
   flag &&= verifyCode.value!.length === 4;
-  flag &&= hasNoChinese(verifyCode.value as string);
+  flag &&= utils.hasNoChinese(verifyCode.value as string);
   return flag;
 }
+
+let verifyCodeImg = ref();
+
+// 验证码获取
+function getCaptcha() {
+  axios.get("/utils/captcha").then(result => {
+    verifyCodeImg.value = result.data.data.url;
+  }).catch(error => {
+    ElMessage({
+      message: '验证码加载失败',
+      type: 'error',
+    });
+  });
+}
+getCaptcha();
 
 // 提交
 function subRegister() {
@@ -138,15 +152,32 @@ function subRegister() {
   const termEndDate = dateArr[1];
 
   axios.post("/user/register", {
-    username,
-    password,
+    username: username.value,
+    password: password.value,
     termStartDate,
     termEndDate,
-    verifyCode
+    captchaCode: verifyCode.value
   }).then(result => {
-
+    if (result.data.code === 10051) {
+      ElMessage({
+        message: '注册成功，将自动跳转登录',
+        type: 'success',
+      });
+      setTimeout(() => {
+        router.push({ name: "login" });
+      }, 2000);
+    } else if (result.data.code === 10050) {
+      ElMessage({
+        message: '注册失败，请更换用户名',
+        type: 'warning',
+      });
+      getCaptcha();
+    }
   }).catch(error => {
-
+    ElMessage({
+      message: '系统错误',
+      type: 'error',
+    });
   });
 }
 
@@ -156,7 +187,7 @@ function subRegister() {
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
-  padding: 0 70px;
+  padding: 20px 70px;
 }
 
 .input .el-input {
@@ -177,17 +208,17 @@ function subRegister() {
 .verify {
   display: flex;
   justify-content: space-between;
+  height: 45px;
 }
 
 .verify .el-input {
   width: 200px;
-  height: 45px;
 }
 
 .verify .verifyCode {
   width: 100px;
-  /* height: 45px; */
-  border: 1px solid #000;
+  cursor: pointer;
+  border-radius: 3px;
 }
 
 .button {
