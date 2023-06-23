@@ -180,9 +180,16 @@ function subRegister() {
     });
   });
 }
-
 </script>
 <style scoped>
+.title {
+  margin: 25px auto;
+  color: #b9b3b0;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 32px;
+}
+
 .input {
   display: flex;
   flex-direction: column;

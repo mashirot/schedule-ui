@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router';
-import Front from './components/Front.vue';
+import { RouterView } from 'vue-router';
 </script>
 
 <template>
-  <Front />
+  <RouterView />
 </template>
 
 <style scoped></style>

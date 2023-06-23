@@ -11,16 +11,14 @@
   </div>
 </template>
 <script setup lang="ts">
-
 function jump2Pixiv() {
   window.open("https://www.pixiv.net/artworks/108906379", "_blank");
 }
-
 function jump2Github() {
   window.open("https://github.com/mashirot/schedule-ui", "_blank");
 }
 </script>
-<style>
+<style scoped>
 .container {
   position: absolute;
   left: 0;
@@ -48,14 +46,6 @@ function jump2Github() {
   text-align: center;
   border-radius: 20px;
   background-color: rgba(0, 0, 0, 0.27);
-}
-
-.title {
-  margin: 25px auto;
-  color: #b9b3b0;
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 32px;
 }
 
 .button {
