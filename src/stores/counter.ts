@@ -26,7 +26,38 @@ export const useCourseStore = defineStore('course', () => {
     credit: string,
   }
 
+  const weeks = [
+    {
+      value: "Monday",
+      label: "周一"
+    },
+    {
+      value: "Tuesday",
+      label: "周二"
+    },
+    {
+      value: "Wednesday",
+      label: "周三"
+    },
+    {
+      value: "Thursday",
+      label: "周四"
+    },
+    {
+      value: "Friday",
+      label: "周五"
+    },
+    {
+      value: "Saturday",
+      label: "周六"
+    },
+    {
+      value: "Sunday",
+      label: "周日"
+    }
+  ];
+
   let courseData = reactive<Array<CourseVo>>([]);
 
-  return { courseData };
+  return { courseData, weeks };
 });

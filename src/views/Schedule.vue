@@ -46,8 +46,10 @@ function delCourse(index: number, row: CourseVo) {
 
 }
 
-function getCourses(uri: string) {
-  axios.get(`/sched/${uri}`, {
+function getCourses(isEff: boolean) {
+  axios.post(`/sched/sel`, {
+    isEffective: isEff,
+  }, {
     headers: {
       "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
     }
@@ -75,7 +77,7 @@ function getCourses(uri: string) {
 }
 
 function getEffCourses() {
-  getCourses("eff");
+  getCourses(true);
 }
 getEffCourses();
 </script>

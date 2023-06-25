@@ -26,7 +26,7 @@
               <span class="aside-small-title">全部日程</span>
             </el-menu-item>
           </el-sub-menu>
-          <el-menu-item>
+          <el-menu-item @click="dialogSearchVisible = true">
             <el-icon class="aside-icon">
               <Operation />
             </el-icon>
@@ -59,33 +59,34 @@
       </div>
     </div>
   </div>
+  <el-dialog v-model="dialogSearchVisible" title="筛选">
+    <Search @close="dialogSearchVisible = false"></Search>
+  </el-dialog>
 </template>
 <script setup lang="ts">
 import axios from 'axios';
 import { ElMessage } from 'element-plus/lib/components/index.js';
 import { useCourseStore } from '@/stores/counter';
 import { useRouter } from 'vue-router';
+import { ref } from 'vue';
+import Search from '@/views/Search.vue';
 
 const router = useRouter();
 const courseStore = useCourseStore();
-
-interface CourseSearchVo {
-  courseId: number,
-  currWeek: number,
-  dayOfWeek: string,
-  oddWeek: number,
-}
+const dialogSearchVisible = ref(false);
 
 function getEffCourses() {
-  getCourses("eff");
+  getCourses(true);
 }
 
 function getAllCourses() {
-  getCourses("all");
+  getCourses(false);
 }
 
-function getCourses(uri: string) {
-  axios.get(`/sched/${uri}`, {
+function getCourses(isEff: boolean) {
+  axios.post(`/sched/sel`, {
+    isEffective: isEff
+  }, {
     headers: {
       "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
     }
