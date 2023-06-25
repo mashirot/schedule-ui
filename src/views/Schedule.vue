@@ -43,7 +43,37 @@ function modifyCourse(index: number, row: CourseVo) {
 }
 
 function delCourse(index: number, row: CourseVo) {
-
+    axios.post(`/sched/del`, {
+    courseId: row.courseId
+  }, {
+    headers: {
+      "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
+    }
+  }).then(result => {
+    if (result.data.code === 10000) {
+      ElMessage({
+        message: '登录过期，请重新登陆',
+        type: 'warning',
+      });
+      router.push({ name: "login" });
+    } else if (result.data.code === 20061) {
+      ElMessage({
+        message: '删除成功',
+        type: 'success',
+      });
+      getEffCourses();
+    } else if (result.data.code === 20060) {
+      ElMessage({
+        message: '删除失败',
+        type: 'error',
+      });
+    }
+  }).catch(error => {
+    ElMessage({
+      message: '系统错误',
+      type: 'error',
+    });
+  });
 }
 
 function getCourses(isEff: boolean) {
