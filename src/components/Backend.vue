@@ -59,7 +59,7 @@
       </div>
     </div>
   </div>
-  <el-dialog v-model="dialogSearchVisible" title="筛选">
+  <el-dialog v-model="dialogSearchVisible" title="筛选" width="600px">
     <Search @close="dialogSearchVisible = false"></Search>
   </el-dialog>
 </template>

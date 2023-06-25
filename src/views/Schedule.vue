@@ -11,10 +11,13 @@
     <el-table-column label="操作" align="center" min-width="125">
       <template #default="scope">
         <el-button size="small" @click="modifyCourse(scope.$index, scope.row)">修改</el-button>
-        <el-button size="small" type="danger" @click="delCourse(scope.$index, scope.row)">删除</el-button>
+        <el-button size="small" type="danger" @click="delCourse(scope.row)">删除</el-button>
       </template>
     </el-table-column>
   </el-table>
+  <el-dialog v-model="dialoModifyVisible" title="筛选">
+    <Search @close="dialoModifyVisible = false"></Search>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -22,9 +25,11 @@ import axios from 'axios';
 import { ElMessage } from 'element-plus/lib/components/index.js';
 import { useCourseStore } from '@/stores/counter';
 import { useRouter } from 'vue-router';
+import { ref } from 'vue';
 
 const router = useRouter();
 const courseStore = useCourseStore();
+const dialoModifyVisible = ref(false);
 
 interface CourseVo {
   courseId: number,
@@ -42,7 +47,7 @@ function modifyCourse(index: number, row: CourseVo) {
 
 }
 
-function delCourse(index: number, row: CourseVo) {
+function delCourse(row: CourseVo) {
     axios.post(`/sched/del`, {
     courseId: row.courseId
   }, {
@@ -115,4 +120,6 @@ getEffCourses();
 .el-table {
   height: 100%;
 }
+
+
 </style>

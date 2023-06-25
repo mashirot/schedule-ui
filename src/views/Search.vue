@@ -11,7 +11,7 @@
         <el-input v-model="searchForm.place" placeholder="请输入上课地点" />
       </el-form-item>
       <el-form-item label="日期：">
-        <el-select v-model="searchForm.dayOfWeek" placeholder="请选择日期">
+        <el-select v-model="searchForm.dayOfWeek" placeholder="请选择日期" style="width: 255px">
           <el-option v-for="item in courseStore.weeks" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
@@ -32,7 +32,7 @@
           <el-radio :label="null">全部</el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item>
+      <el-form-item class="btn">
         <el-button type="primary" @click="subSearch">查询</el-button>
         <el-button @click="close">取消</el-button>
       </el-form-item>
@@ -113,3 +113,26 @@ function subSearch() {
   });
 }
 </script>
+
+<style scoped>
+.container {
+  display: flex;
+  justify-content: center;
+
+}
+
+:deep(.el-form-item__label) {
+  width: 75px;
+  text-align: center;
+}
+
+.btn :deep(.el-form-item__content) {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.btn .el-button {
+  margin: 0 15px;
+}
+</style>
