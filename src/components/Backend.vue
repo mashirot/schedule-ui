@@ -66,6 +66,12 @@
               </div>
               <span class="aside-small-title">添加课程</span>
             </el-menu-item>
+            <el-menu-item @click="dialogFileVisible = true">
+              <div class="aside-small-icon">
+                <font-awesome-icon icon="fa-solid fa-file-lines" />
+              </div>
+              <span class="aside-small-title">导入课程</span>
+            </el-menu-item>
             <el-menu-item @click="ensureClear">
               <div class="aside-small-icon">
                 <font-awesome-icon icon="fa-solid fa-trash" />
@@ -123,6 +129,31 @@
       </el-form>
     </div>
   </el-dialog>
+  <el-dialog v-model="dialogFileVisible" title="文件上传" width="600px">
+    <div class="upload" style="margin: 25px 50px;">
+      <el-upload drag :action="uploadUrl" name="courseFile" accept=".txt" limit="1"
+        :headers="{ 'Authorization': `Bearer ${jwtToken}` }" :on-success="uploadSuccess" :on-error="uploadFailed">
+        <font-awesome-icon icon="fa-solid fa-cloud-arrow-up" style="height: 75px;" />
+        <div class="el-upload__text">
+          拖动文件至此 或 <em>点击上传</em>
+        </div>
+        <template #tip>
+          <div class="el-upload__tip">
+            仅能上传.txt文件且小于16KB
+          </div>
+          <div class="el-upload__tip">
+            内容示例：
+          </div>
+          <div class="el-upload__tip">
+            课程名|地点|讲师|日期|开始时间-结束时间|开始周-结束周|单双周[否|单|双]|学分
+          </div>
+          <div class="el-upload__tip">
+            高等数学|A教111|罗永浩|Monday|07:00-20:00|1-16|否|100
+          </div>
+        </template>
+      </el-upload>
+    </div>
+  </el-dialog>
 </template>
 <script setup lang="ts">
 import axios from 'axios';
@@ -142,7 +173,11 @@ const dialogSearchVisible = ref(false);
 const dialogInsertVisible = ref(false);
 const dialogUserInfoVisible = ref(false);
 const dialogModifyUserInfoVisible = ref(false);
+const dialogFileVisible = ref(false);
 const today = ref(moment().format("YYYY 年 MM 月 DD 日"));
+// 文件上传接口地址
+const uploadUrl = "http://127.0.0.1:8080/sched/file";
+const jwtToken = sessionStorage.getItem("authToken");
 
 interface Course {
   courseId: number,
@@ -170,6 +205,36 @@ const userInfo = reactive({
   currWeek: "?",
   apiToken: "-"
 });
+
+function uploadFailed() {
+  ElMessage({
+    message: '系统错误',
+    type: 'error',
+  });
+  dialogFileVisible.value = false;
+}
+
+function uploadSuccess(response: any) {
+  if (response.code === 10000) {
+    ElMessage({
+      message: '登录过期，请重新登陆',
+      type: 'warning',
+    });
+    router.push({ name: "login" });
+  } else if (response.code === 30051) {
+    ElMessage({
+      message: '上传成功，解析成功',
+      type: 'success',
+    });
+    getEffCourses();
+  } else if (response.code === 30050) {
+    ElMessage({
+      message: '上传成功，解析失败，请检查内容格式',
+      type: 'warning',
+    });
+  }
+  dialogFileVisible.value = false;
+}
 
 let userInfoForm = reactive<UserInfoModify>({
   password: "",
@@ -223,14 +288,14 @@ function subUserInfoModify() {
     headers: {
       "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
     }
-  }).then(result => {
-    if (result.data.code === 10000) {
+  }).then(response => {
+    if (response.data.code === 10000) {
       ElMessage({
         message: '登录过期，请重新登陆',
         type: 'warning',
       });
       router.push({ name: "login" });
-    } else if (result.data.code === 10041) {
+    } else if (response.data.code === 10041) {
       if (userInfoForm.password === "") {
         ElMessage({
           message: '修改成功',
@@ -245,7 +310,7 @@ function subUserInfoModify() {
         });
         router.push({ name: "login" });
       }
-    } else if (result.data.code === 10040) {
+    } else if (response.data.code === 10040) {
       ElMessage({
         message: '修改失败',
         type: 'error',
@@ -281,8 +346,8 @@ function getUserInfo() {
     headers: {
       "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
     }
-  }).then(result => {
-    const user = result.data.data;
+  }).then(response => {
+    const user = response.data.data;
     userInfo.username = user.username;
     userInfo.termStartDate = user.termStartDate;
     userInfo.termEndDate = user.termEndDate;
@@ -313,21 +378,21 @@ function subIns() {
     headers: {
       "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
     }
-  }).then(result => {
-    if (result.data.code === 10000) {
+  }).then(response => {
+    if (response.data.code === 10000) {
       ElMessage({
         message: '登录过期，请重新登陆',
         type: 'warning',
       });
       router.push({ name: "login" });
-    } else if (result.data.code === 20051) {
+    } else if (response.data.code === 20051) {
       ElMessage({
         message: '修改成功',
         type: 'success',
       });
       dialogInsertVisible.value = false;
       getEffCourses();
-    } else if (result.data.code === 20050) {
+    } else if (response.data.code === 20050) {
       ElMessage({
         message: '修改失败',
         type: 'error',
@@ -382,20 +447,20 @@ function subClear() {
     headers: {
       "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
     }
-  }).then(result => {
-    if (result.data.code === 10000) {
+  }).then(response => {
+    if (response.data.code === 10000) {
       ElMessage({
         message: '登录过期，请重新登陆',
         type: 'warning',
       });
       router.push({ name: "login" });
-    } else if (result.data.code === 20061) {
+    } else if (response.data.code === 20061) {
       ElMessage({
         message: '清空成功',
         type: 'success',
       });
       getEffCourses();
-    } else if (result.data.code === 20060) {
+    } else if (response.data.code === 20060) {
       ElMessage({
         message: '清空失败',
         type: 'error',
@@ -424,16 +489,16 @@ function getCourses(isEff: boolean) {
     headers: {
       "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
     }
-  }).then(result => {
-    if (result.data.code === 10000) {
+  }).then(response => {
+    if (response.data.code === 10000) {
       ElMessage({
         message: '登录过期，请重新登陆',
         type: 'warning',
       });
       router.push({ name: "login" });
-    } else if (result.data.code === 20011) {
-      courseStore.courseData = result.data.data;
-    } else if (result.data.code === 20020) {
+    } else if (response.data.code === 20011) {
+      courseStore.courseData = response.data.data;
+    } else if (response.data.code === 20020) {
       ElMessage({
         message: '获取课程信息失败',
         type: 'error',
