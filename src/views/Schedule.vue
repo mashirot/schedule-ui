@@ -15,7 +15,7 @@
       </template>
     </el-table-column>
   </el-table>
-  <el-dialog v-model="dialogModifyVisible" title="修改" width="600px">
+  <el-dialog v-model="dialogModifyVisible" title="修改课程" width="600px">
     <CourseForm class="modify" btnName="修改" @close="dialogModifyVisible = false" @submit="subModify"></CourseForm>
   </el-dialog>
 </template>
