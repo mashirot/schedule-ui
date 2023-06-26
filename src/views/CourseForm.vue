@@ -141,7 +141,6 @@ function checkWeek(rule: any, value: any, callback: any) {
 
 function close() {
   emit("close");
-  courseStore.resetForm();
 }
 
 async function submitForm(formEl: FormInstance | undefined) {

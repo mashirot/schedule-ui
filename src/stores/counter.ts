@@ -91,21 +91,5 @@ export const useCourseStore = defineStore('course', () => {
     credit: 0
   });
 
-  function resetForm() {
-    courseForm = {
-      courseId: 0,
-      dayOfWeek: '',
-      startTime: '',
-      endTime: '',
-      name: '',
-      place: '',
-      teacher: '',
-      startWeek: 0,
-      endWeek: 0,
-      oddWeek: 0,
-      credit: 0
-    };
-  }
-
-  return { courseData, weeks, courseForm, resetForm };
+  return { courseData, weeks, courseForm };
 });

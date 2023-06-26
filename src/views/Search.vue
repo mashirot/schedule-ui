@@ -11,7 +11,7 @@
         <el-input v-model="searchForm.place" placeholder="请输入上课地点" />
       </el-form-item>
       <el-form-item label="日期：">
-        <el-select v-model="searchForm.dayOfWeek" placeholder="请选择日期" style="width: 255px">
+        <el-select v-model="searchForm.dayOfWeek" placeholder="请选择日期" style="width: 255px" clearable>
           <el-option v-for="item in courseStore.weeks" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
@@ -80,7 +80,7 @@ function subSearch() {
     name: searchForm.name,
     place: searchForm.place,
     currWeek: searchForm.currWeek,
-    dayOfWeek: searchForm.dayOfWeek,
+    dayOfWeek: searchForm.dayOfWeek === "" ? null : searchForm.dayOfWeek,
     isEffective: searchForm.isEffective,
     credit: searchForm.credit,
     oddWeek: searchForm.oddWeek,

@@ -106,7 +106,7 @@ function subModify() {
         type: 'success',
       });
       dialogModifyVisible.value = false;
-      courseStore.resetForm();
+      resetForm();
       getEffCourses();
     } else if (result.data.code === 20070) {
       ElMessage({
@@ -114,7 +114,7 @@ function subModify() {
         type: 'error',
       });
       dialogModifyVisible.value = false;
-      courseStore.resetForm();
+      resetForm();
     }
   }).catch(error => {
     ElMessage({
@@ -122,6 +122,22 @@ function subModify() {
       type: 'error',
     });
   });
+}
+
+function resetForm() {
+  courseStore.courseForm = {
+    courseId: 0,
+    dayOfWeek: '',
+    startTime: '',
+    endTime: '',
+    name: '',
+    place: '',
+    teacher: '',
+    startWeek: 0,
+    endWeek: 0,
+    oddWeek: 0,
+    credit: 0
+  };
 }
 
 function delCourse(row: CourseVo) {
@@ -197,6 +213,7 @@ getEffCourses();
 <style scoped>
 .el-table {
   height: 100%;
+  background-color: #ffffff00;
 }
 
 .modify {

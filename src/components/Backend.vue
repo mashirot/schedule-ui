@@ -1,7 +1,28 @@
 <template>
   <div class="box">
     <div class="header">
-
+      <div class="dateInfo">
+        <div>{{ today }}</div>
+        <div class="week">第 {{ userInfo.currWeek }} 周</div>
+      </div>
+      <div class="userInfo">
+        <el-dropdown>
+          <div class="btn">
+            <el-icon>
+              <User />
+            </el-icon>
+            <span style="margin: 0 10px;">{{ userInfo.username }}</span>
+            <el-icon><arrow-down /></el-icon>
+          </div>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item @click="dialogUserInfoVisible = true">个人资料</el-dropdown-item>
+              <el-dropdown-item @click="dialogModifyUserInfoVisible = true">修改资料</el-dropdown-item>
+              <el-dropdown-item @click="logout">退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
     </div>
     <div class="container">
       <div class="aside">
@@ -62,23 +83,66 @@
   <el-dialog v-model="dialogSearchVisible" title="筛选" width="600px">
     <Search @close="dialogSearchVisible = false"></Search>
   </el-dialog>
-  <el-dialog v-model="dialogInsertVisible" title="添加课程" width="600px">
+  <el-dialog v-model="dialogInsertVisible" :closed="resetCourseForm()" title="添加课程" width="600px">
     <CourseForm class="insert" btnName="添加" @close="dialogInsertVisible = false" @submit="subIns"></CourseForm>
+  </el-dialog>
+  <el-dialog v-model="dialogUserInfoVisible" title="个人信息" width="600px">
+    <div class="userInfoShow">
+      <div class="row">
+        <div class="des">用户名：</div>
+        <div class="value">{{ userInfo.username }}</div>
+      </div>
+      <div class="row">
+        <div class="des">学期开始日期：</div>
+        <div class="value">{{ moment(userInfo.termStartDate).format("YYYY-MM-DD") }}</div>
+      </div>
+      <div class="row">
+        <div class="des">学期结束日期：</div>
+        <div class="value">{{ moment(userInfo.termEndDate).format("YYYY-MM-DD") }}</div>
+      </div>
+      <div class="row">
+        <div class="des">ApiToken：</div>
+        <div class="value">{{ userInfo.apiToken }}</div>
+      </div>
+    </div>
+  </el-dialog>
+  <el-dialog v-model="dialogModifyUserInfoVisible" :closed="resetUserInfoForm()" title="修改信息" width="600px">
+    <div class="infoInput">
+      <el-form :model="userInfoForm" :rules="infoRules" label-width="75px">
+        <el-form-item label="新密码：" prop="password">
+          <el-input v-model="userInfoForm.password" type="password" placeholder="新密码" />
+        </el-form-item>
+        <el-form-item label="新日期：">
+          <el-date-picker v-model="userInfoForm.date" type="daterange" range-separator="-" start-placeholder="学期开始日期"
+            end-placeholder="学期结束日期" />
+        </el-form-item>
+        <div class="btn">
+          <el-button type="primary" @click="subUserInfoModify">修改</el-button>
+          <el-button @click="dialogModifyUserInfoVisible = false">取消</el-button>
+        </div>
+      </el-form>
+    </div>
   </el-dialog>
 </template>
 <script setup lang="ts">
 import axios from 'axios';
 import { ElMessage, ElMessageBox } from 'element-plus/lib/components/index.js';
-import { useCourseStore } from '@/stores/counter';
+import type { FormRules } from 'element-plus/lib/components/index.js';
+import { useCourseStore, useUtilStore } from '@/stores/counter';
 import { useRouter } from 'vue-router';
-import { ref } from 'vue';
+import { reactive, ref } from 'vue';
 import Search from '@/views/Search.vue';
 import CourseForm from '@/views/CourseForm.vue';
+import moment from 'moment';
 
 const router = useRouter();
+const utilStore = useUtilStore();
 const courseStore = useCourseStore();
 const dialogSearchVisible = ref(false);
 const dialogInsertVisible = ref(false);
+const dialogUserInfoVisible = ref(false);
+const dialogModifyUserInfoVisible = ref(false);
+const today = ref(moment().format("YYYY 年 MM 月 DD 日"));
 
 interface Course {
   courseId: number,
@@ -93,6 +157,143 @@ interface Course {
   oddWeek: number,
   credit: number,
 }
+
+interface UserInfoModify {
+  password: string,
+  date: Array<Date> | null;
+}
+
+const userInfo = reactive({
+  username: "default",
+  termStartDate: new Date(),
+  termEndDate: new Date(),
+  currWeek: "?",
+  apiToken: "-"
+});
+
+let userInfoForm = reactive<UserInfoModify>({
+  password: "",
+  date: null,
+});
+
+const infoRules = reactive<FormRules>({
+  password: [
+    { min: 6, max: 30, message: '密码长度在6-30之间', trigger: 'blur' },
+    { validator: checkChinese, trigger: 'blur' }
+  ]
+});
+
+function checkChinese(rule: any, value: any, callback: any) {
+  if (!utilStore.hasNoChinese(value)) {
+    callback(new Error("请输入英文及数字"));
+  }
+  callback();
+}
+
+function subUserInfoModify() {
+  if (userInfoForm.password === "" && userInfoForm.date === null) {
+    dialogModifyUserInfoVisible.value = false;
+    ElMessage({
+      message: '无任何修改',
+      type: 'warning',
+    });
+    return;
+  }
+  if (userInfoForm.password !== "") {
+    if (userInfoForm.password.length < 6 || userInfoForm.password.length > 30) {
+      ElMessage({
+        message: '请检查输入信息',
+        type: 'error',
+      });
+      return;
+    }
+  }
+  let termStartDate = null;
+  let termEndDate = null;
+  if (userInfoForm.date !== null) {
+    const dateArr = userInfoForm.date as Array<Date>;
+    termStartDate = dateArr[0];
+    termEndDate = dateArr[1];
+  }
+  axios.post("/user/modify", {
+    password: userInfoForm.password === "" ? null : userInfoForm.password,
+    termStartDate,
+    termEndDate
+  }, {
+    headers: {
+      "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
+    }
+  }).then(result => {
+    if (result.data.code === 10000) {
+      ElMessage({
+        message: '登录过期，请重新登陆',
+        type: 'warning',
+      });
+      router.push({ name: "login" });
+    } else if (result.data.code === 10041) {
+      if (userInfoForm.password === "") {
+        ElMessage({
+          message: '修改成功',
+          type: 'success',
+        });
+        dialogModifyUserInfoVisible.value = false;
+        getUserInfo();
+      } else {
+        ElMessage({
+          message: '修改成功，请重新登陆',
+          type: 'success',
+        });
+        router.push({ name: "login" });
+      }
+    } else if (result.data.code === 10040) {
+      ElMessage({
+        message: '修改失败',
+        type: 'error',
+      });
+      dialogModifyUserInfoVisible.value = false;
+    }
+  }).catch(error => {
+    ElMessage({
+      message: '系统错误',
+      type: 'error',
+    });
+  });
+}
+
+function resetUserInfoForm() {
+  userInfoForm = reactive({
+    password: "",
+    date: null,
+  });
+}
+
+// 伪退出
+function logout() {
+  router.push({ name: "login" });
+  ElMessage({
+    message: '退出成功',
+    type: 'success',
+  });
+}
+
+function getUserInfo() {
+  axios.get("/user/info", {
+    headers: {
+      "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
+    }
+  }).then(result => {
+    const user = result.data.data;
+    userInfo.username = user.username;
+    userInfo.termStartDate = user.termStartDate;
+    userInfo.termEndDate = user.termEndDate;
+    userInfo.currWeek = user.currWeek;
+    userInfo.apiToken = user.apiToken;
+  }).catch(error => {
+    console.log(error);
+  });
+}
+// 进入后调用一次
+getUserInfo();
 
 function subIns() {
   const course: Course = {
@@ -125,7 +326,6 @@ function subIns() {
         type: 'success',
       });
       dialogInsertVisible.value = false;
-      courseStore.resetForm();
       getEffCourses();
     } else if (result.data.code === 20050) {
       ElMessage({
@@ -133,13 +333,28 @@ function subIns() {
         type: 'error',
       });
       dialogInsertVisible.value = false;
-      courseStore.resetForm();
     }
   }).catch(error => {
     ElMessage({
       message: '系统错误',
       type: 'error',
     });
+  });
+}
+
+function resetCourseForm() {
+  courseStore.courseForm = reactive({
+    courseId: 0,
+    dayOfWeek: '',
+    startTime: '',
+    endTime: '',
+    name: '',
+    place: '',
+    teacher: '',
+    startWeek: 0,
+    endWeek: 0,
+    oddWeek: 0,
+    credit: 0
   });
 }
 
@@ -246,10 +461,48 @@ function getCourses(isEff: boolean) {
 }
 
 .header {
+  position: relative;
   box-sizing: border-box;
   width: 100%;
   height: 65px;
-  border: 1px solid #000;
+  border-bottom: 1px solid #dcdcdc;
+}
+
+.header .dateInfo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.header .week {
+  margin-top: 3px;
+  font-size: 14px;
+}
+
+.header .userInfo {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  margin-right: 15px;
+}
+
+.header .userInfo .btn {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: #fefefe;
+  border: 1.5px solid #e1e1e1;
+  border-radius: 5px;
+}
+
+.header .userInfo .btn:hover {
+  cursor: default;
 }
 
 .container {
@@ -260,10 +513,16 @@ function getCourses(isEff: boolean) {
 .aside {
   width: 275px;
   border-right: 1px solid #dcdfe6;
+  background-color: #fcfcfc;
 }
 
 .aside .el-menu {
   border: 0;
+  background-color: #ffffff00;
+}
+
+.aside .el-menu :deep(.el-menu--inline) {
+  background-color: #ffffff00;
 }
 
 .aside .aside-small-icon {
@@ -281,11 +540,58 @@ function getCourses(isEff: boolean) {
   width: 100%;
   height: 100%;
   overflow: auto;
+  background-color: #f0f0f0;
 }
 
 .insert {
   display: flex;
   justify-content: center;
   padding: 0 50px;
+}
+
+.userInfoShow {
+  margin: 0 50px;
+  margin-bottom: 25px;
+}
+
+.userInfoShow .row {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 50px;
+  line-height: 50px;
+}
+
+.userInfoShow .row .des {
+  padding-right: 15px;
+  box-sizing: border-box;
+  width: 250px;
+  text-align: right;
+  background-color: #ececec;
+  border: 1px solid #363637;
+}
+
+.userInfoShow .row .value {
+  box-sizing: border-box;
+  text-align: center;
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #363637;
+  border-left: 0;
+}
+
+.infoInput {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.infoInput .btn {
+  margin-top: 25px;
+  text-align: center;
+}
+
+.infoInput .el-button {
+  margin: 0 15px;
 }
 </style>
