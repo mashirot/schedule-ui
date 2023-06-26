@@ -10,13 +10,13 @@
     <el-table-column prop="credit" label="学分" align="center" />
     <el-table-column label="操作" align="center" min-width="125">
       <template #default="scope">
-        <el-button size="small" @click="modifyCourse(scope.$index, scope.row)">修改</el-button>
+        <el-button size="small" @click="modifyCourse(scope.row)">修改</el-button>
         <el-button size="small" type="danger" @click="delCourse(scope.row)">删除</el-button>
       </template>
     </el-table-column>
   </el-table>
-  <el-dialog v-model="dialoModifyVisible" title="筛选">
-    <Search @close="dialoModifyVisible = false"></Search>
+  <el-dialog v-model="dialogModifyVisible" title="修改" width="600px">
+    <CourseForm class="modify" btnName="修改" @close="dialogModifyVisible = false" @submit="subModify"></CourseForm>
   </el-dialog>
 </template>
 
@@ -26,10 +26,25 @@ import { ElMessage } from 'element-plus/lib/components/index.js';
 import { useCourseStore } from '@/stores/counter';
 import { useRouter } from 'vue-router';
 import { ref } from 'vue';
+import CourseForm from './CourseForm.vue';
 
 const router = useRouter();
 const courseStore = useCourseStore();
-const dialoModifyVisible = ref(false);
+let dialogModifyVisible = ref(false);
+
+interface Course {
+  courseId: number,
+  dayOfWeek: string,
+  startTime: string,
+  endTime: string,
+  name: string,
+  place: string,
+  teacher: string,
+  startWeek: number,
+  endWeek: number,
+  oddWeek: number,
+  credit: number,
+}
 
 interface CourseVo {
   courseId: number,
@@ -43,12 +58,74 @@ interface CourseVo {
   credit: string,
 }
 
-function modifyCourse(index: number, row: CourseVo) {
+function modifyCourse(row: CourseVo) {
+  courseStore.courseForm = {
+    courseId: row.courseId,
+    dayOfWeek: row.dayOfWeek,
+    startTime: row.time.split(" - ")[0],
+    endTime: row.time.split(" - ")[1],
+    name: row.name,
+    place: row.place,
+    teacher: row.teacher,
+    startWeek: row.week.split(" - ")[0] as unknown as number,
+    endWeek: row.week.split(" - ")[1] as unknown as number,
+    oddWeek: row.oddWeek === "-" ? 0 : row.oddWeek === "单" ? 1 : 2,
+    credit: row.credit as unknown as number,
+  };
+  dialogModifyVisible.value = true;
+}
 
+function subModify() {
+  const course: Course = {
+    courseId: courseStore.courseForm.courseId,
+    dayOfWeek: courseStore.courseForm.dayOfWeek,
+    startTime: courseStore.courseForm.startTime,
+    endTime: courseStore.courseForm.endTime,
+    name: courseStore.courseForm.name,
+    place: courseStore.courseForm.place,
+    teacher: courseStore.courseForm.teacher,
+    startWeek: parseInt(courseStore.courseForm.startWeek as unknown as string, 10),
+    endWeek: parseInt(courseStore.courseForm.endWeek as unknown as string, 10),
+    oddWeek: parseInt(courseStore.courseForm.oddWeek as unknown as string, 10),
+    credit: parseFloat(courseStore.courseForm.credit as unknown as string)
+  };
+  axios.post(`/sched/update`, course, {
+    headers: {
+      "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
+    }
+  }).then(result => {
+    if (result.data.code === 10000) {
+      ElMessage({
+        message: '登录过期，请重新登陆',
+        type: 'warning',
+      });
+      router.push({ name: "login" });
+    } else if (result.data.code === 20071) {
+      ElMessage({
+        message: '修改成功',
+        type: 'success',
+      });
+      dialogModifyVisible.value = false;
+      courseStore.resetForm();
+      getEffCourses();
+    } else if (result.data.code === 20070) {
+      ElMessage({
+        message: '修改失败',
+        type: 'error',
+      });
+      dialogModifyVisible.value = false;
+      courseStore.resetForm();
+    }
+  }).catch(error => {
+    ElMessage({
+      message: '系统错误',
+      type: 'error',
+    });
+  });
 }
 
 function delCourse(row: CourseVo) {
-    axios.post(`/sched/del`, {
+  axios.post(`/sched/del`, {
     courseId: row.courseId
   }, {
     headers: {
@@ -116,10 +193,15 @@ function getEffCourses() {
 }
 getEffCourses();
 </script>
+
 <style scoped>
 .el-table {
   height: 100%;
 }
 
-
+.modify {
+  display: flex;
+  justify-content: center;
+  padding: 0 50px;
+}
 </style>

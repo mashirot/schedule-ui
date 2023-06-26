@@ -16,11 +16,13 @@
         <el-input v-model="courseStore.courseForm.teacher" placeholder="请输入授课教师" />
       </el-form-item>
       <el-form-item label="时间：" prop="startTime">
-        <el-time-select v-model="courseStore.courseForm.startTime" :max-time="courseStore.courseForm.endTime"
-          placeholder="Start time" start="06:00" step="00:05" end="23:00" />
-        <span class="time-span">-</span>
-        <el-time-select v-model="courseStore.courseForm.endTime" :min-time="courseStore.courseForm.startTime"
-          placeholder="End time" start="06:00" step="00:05" end="23:00" />
+        <div class="time">
+          <el-time-select v-model="courseStore.courseForm.startTime" :max-time="courseStore.courseForm.endTime"
+            placeholder="Start time" start="06:00" step="00:05" end="23:00" />
+          <span class="time-span">-</span>
+          <el-time-select v-model="courseStore.courseForm.endTime" :min-time="courseStore.courseForm.startTime"
+            placeholder="End time" start="06:00" step="00:05" end="23:00" />
+        </div>
       </el-form-item>
       <el-form-item label="上课周：" prop="startWeek">
         <div class="week">
@@ -139,23 +141,7 @@ function checkWeek(rule: any, value: any, callback: any) {
 
 function close() {
   emit("close");
-  resetForm();
-}
-
-function resetForm() {
-  courseStore.courseForm = {
-    courseId: 0,
-    dayOfWeek: '',
-    startTime: '',
-    endTime: '',
-    name: '',
-    place: '',
-    teacher: '',
-    startWeek: 0,
-    endWeek: 0,
-    oddWeek: 0,
-    credit: 0
-  };
+  courseStore.resetForm();
 }
 
 async function submitForm(formEl: FormInstance | undefined) {
@@ -190,8 +176,17 @@ function submit() {
   width: 100%;
 }
 
-.time-span {
+.time {
+  display: flex;
+}
+
+.time .time-span {
   margin: 0 20px;
+}
+
+.time :deep(.el-input__wrapper) {
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .week {
