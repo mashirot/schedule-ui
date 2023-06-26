@@ -1,7 +1,5 @@
-import { ref, computed, reactive } from 'vue';
+import { reactive } from 'vue';
 import { defineStore } from 'pinia';
-import axios from 'axios';
-import { ElMessage } from 'element-plus/lib/components/index.js';
 
 export const useUtilStore = defineStore('utils', () => {
   // 中文校验
@@ -9,7 +7,13 @@ export const useUtilStore = defineStore('utils', () => {
     const reg = /[\u4E00-\u9FA5]/g;
     return value.search(reg) === -1;
   }
-  return { hasNoChinese };
+
+  function onlyNumber(value: string): boolean {
+    const reg = /^\d+$/;
+    return reg.test(value);
+  }
+
+  return { hasNoChinese, onlyNumber };
 });
 
 
@@ -24,6 +28,20 @@ export const useCourseStore = defineStore('course', () => {
     week: string,
     oddWeek: string,
     credit: string,
+  }
+
+  interface Course {
+    courseId: number,
+    dayOfWeek: string,
+    startTime: string,
+    endTime: string,
+    name: string,
+    place: string,
+    teacher: string,
+    startWeek: number,
+    endWeek: number,
+    oddWeek: number,
+    credit: number,
   }
 
   const weeks = [
@@ -59,5 +77,19 @@ export const useCourseStore = defineStore('course', () => {
 
   let courseData = reactive<Array<CourseVo>>([]);
 
-  return { courseData, weeks };
+  let courseForm = reactive<Course>({
+    courseId: 0,
+    dayOfWeek: '',
+    startTime: '',
+    endTime: '',
+    name: '',
+    place: '',
+    teacher: '',
+    startWeek: 0,
+    endWeek: 0,
+    oddWeek: 0,
+    credit: 0
+  });
+
+  return { courseData, weeks, courseForm };
 });
