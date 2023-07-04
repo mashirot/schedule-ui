@@ -1,13 +1,13 @@
 <template>
-  <el-table :data="courseStore.courseData" border align="center">
-    <el-table-column prop="dayOfWeek" label="日期" align="center" min-width="100" />
-    <el-table-column prop="time" label="时间" align="center" min-width="100" />
+  <el-table :data="courseStore.courseData" :default-sort="{ prop: 'dayOfWeek', order: 'descending' }" border align="center">
+    <el-table-column prop="dayOfWeek" label="日期" sortable :sort-method="sortByDayOfWeek" align="center" min-width="100" />
+    <el-table-column prop="time" label="时间" :sort-method="sortByStartTime" sortable align="center" min-width="100" />
     <el-table-column prop="name" label="课程名" align="center" min-width="250" />
     <el-table-column prop="place" label="上课地点" align="center" min-width="100" />
     <el-table-column prop="teacher" label="讲师" align="center" />
-    <el-table-column prop="week" label="上课周" align="center" />
+    <el-table-column prop="week" label="上课周" sortable :sort-method="sortByStartWeek" align="center" />
     <el-table-column prop="oddWeek" label="单双周" align="center" />
-    <el-table-column prop="credit" label="学分" align="center" />
+    <el-table-column prop="credit" label="学分" sortable align="center" />
     <el-table-column label="操作" align="center" min-width="125">
       <template #default="scope">
         <el-button size="small" @click="modifyCourse(scope.row)">修改</el-button>
@@ -31,7 +31,8 @@ import CourseForm from './CourseForm.vue';
 const router = useRouter();
 const courseStore = useCourseStore();
 let dialogModifyVisible = ref(false);
-
+const week: Map<string, number> = new Map([["Monday", 1], ["Tuesday", 2], ["Wednesday", 3], ["Thursday", 4], ["Friday", 5]]);
+  
 interface Course {
   courseId: number,
   dayOfWeek: string,
@@ -56,6 +57,42 @@ interface CourseVo {
   week: string,
   oddWeek: string,
   credit: string,
+}
+
+function sortByStartWeek(pre: CourseVo, next: CourseVo): number {
+  const startWeek1 = parseInt(pre.week.split(" - ")[0]);
+  const startWeek2 = parseInt(next.week.split(" - ")[0]);
+  const subWeek = startWeek1 - startWeek2;
+  if (subWeek === 0) {
+    return subWeek;
+  }
+  return sortByDayOfWeek(pre, next);
+}
+
+function sortByStartTime(pre: CourseVo, next: CourseVo): number {
+  const startTime1 = parseInt(pre.time.split(" - ")[0].replace(":", ""));
+  const startTime2 = parseInt(next.time.split(" - ")[0].replace(":", ""));
+  const subTime = startTime1 - startTime2;
+  if (subTime !== 0) {
+    return subTime;
+  }
+  const date1 = pre.dayOfWeek;
+  const date2 = next.dayOfWeek;
+  const date2num1 = (week.get(date1) as number);
+  const date2num2 = (week.get(date2) as number);
+  return date2num2 - date2num1;
+}
+
+function sortByDayOfWeek(pre: CourseVo, next: CourseVo): number {
+  const date1 = pre.dayOfWeek;
+  const date2 = next.dayOfWeek;
+  const subDayOfWeek = (week.get(date2) as number) - (week.get(date1) as number);
+  if (subDayOfWeek !== 0) {
+    return subDayOfWeek;
+  }
+  const startTime1 = parseInt(pre.time.split(" - ")[0].replace(":", ""));
+  const startTime2 = parseInt(next.time.split(" - ")[0].replace(":", ""));
+  return startTime1 - startTime2;
 }
 
 function modifyCourse(row: CourseVo) {
