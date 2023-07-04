@@ -176,7 +176,7 @@ const dialogModifyUserInfoVisible = ref(false);
 const dialogFileVisible = ref(false);
 const today = ref(moment().format("YYYY 年 MM 月 DD 日"));
 // 文件上传接口地址
-const uploadUrl = "http://127.0.0.1:8080/sched/file";
+const uploadUrl = "https://api.schedule.mashiro.ski/sched/file";
 const jwtToken = localStorage.getItem("authToken");
 
 interface Course {

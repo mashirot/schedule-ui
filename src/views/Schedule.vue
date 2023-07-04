@@ -92,7 +92,7 @@ function sortByDayOfWeek(pre: CourseVo, next: CourseVo): number {
   }
   const startTime1 = parseInt(pre.time.split(" - ")[0].replace(":", ""));
   const startTime2 = parseInt(next.time.split(" - ")[0].replace(":", ""));
-  return startTime1 - startTime2;
+  return startTime2 - startTime1;
 }
 
 function modifyCourse(row: CourseVo) {

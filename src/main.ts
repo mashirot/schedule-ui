@@ -25,7 +25,7 @@ library.add(fas, fab);
 app.component('font-awesome-icon', FontAwesomeIcon);
 
 // axios
-axios.defaults.baseURL = "http://127.0.0.1:8080";
+axios.defaults.baseURL = "https://api.schedule.mashiro.ski";
 axios.defaults.withCredentials = true;
 
 app.mount('#app');
