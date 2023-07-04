@@ -86,7 +86,7 @@ function subLogin() {
   }).then(result => {
     if (result.data.code === 10011) {
       const user: UserLoginVo = result.data.data;
-      sessionStorage.setItem("authToken", user.authToken as string);
+      localStorage.setItem("authToken", user.authToken as string);
       ElMessage({
         message: '登陆成功，即将跳转',
         type: 'success',

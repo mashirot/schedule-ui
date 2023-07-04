@@ -86,7 +86,7 @@ function subSearch() {
     oddWeek: searchForm.oddWeek,
   }, {
     headers: {
-      "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
+      "Authorization": `Bearer ${localStorage.getItem("authToken")}`
     }
   }).then(result => {
     if (result.data.code === 10000) {

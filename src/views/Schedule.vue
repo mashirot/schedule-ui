@@ -128,7 +128,7 @@ function subModify() {
   };
   axios.post(`/sched/update`, course, {
     headers: {
-      "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
+      "Authorization": `Bearer ${localStorage.getItem("authToken")}`
     }
   }).then(result => {
     if (result.data.code === 10000) {
@@ -182,7 +182,7 @@ function delCourse(row: CourseVo) {
     courseId: row.courseId
   }, {
     headers: {
-      "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
+      "Authorization": `Bearer ${localStorage.getItem("authToken")}`
     }
   }).then(result => {
     if (result.data.code === 10000) {
@@ -216,7 +216,7 @@ function getCourses(isEff: boolean) {
     isEffective: isEff,
   }, {
     headers: {
-      "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
+      "Authorization": `Bearer ${localStorage.getItem("authToken")}`
     }
   }).then(result => {
     if (result.data.code === 10000) {

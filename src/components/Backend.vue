@@ -177,7 +177,7 @@ const dialogFileVisible = ref(false);
 const today = ref(moment().format("YYYY 年 MM 月 DD 日"));
 // 文件上传接口地址
 const uploadUrl = "http://127.0.0.1:8080/sched/file";
-const jwtToken = sessionStorage.getItem("authToken");
+const jwtToken = localStorage.getItem("authToken");
 
 interface Course {
   courseId: number,
@@ -286,7 +286,7 @@ function subUserInfoModify() {
     termEndDate
   }, {
     headers: {
-      "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
+      "Authorization": `Bearer ${localStorage.getItem("authToken")}`
     }
   }).then(response => {
     if (response.data.code === 10000) {
@@ -344,7 +344,7 @@ function logout() {
 function getUserInfo() {
   axios.get("/user/info", {
     headers: {
-      "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
+      "Authorization": `Bearer ${localStorage.getItem("authToken")}`
     }
   }).then(response => {
     const user = response.data.data;
@@ -376,7 +376,7 @@ function subIns() {
   };
   axios.post(`/sched/ins`, course, {
     headers: {
-      "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
+      "Authorization": `Bearer ${localStorage.getItem("authToken")}`
     }
   }).then(response => {
     if (response.data.code === 10000) {
@@ -445,7 +445,7 @@ function ensureClear() {
 function subClear() {
   axios.post(`/sched/del`, {}, {
     headers: {
-      "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
+      "Authorization": `Bearer ${localStorage.getItem("authToken")}`
     }
   }).then(response => {
     if (response.data.code === 10000) {
@@ -487,7 +487,7 @@ function getCourses(isEff: boolean) {
     isEffective: isEff
   }, {
     headers: {
-      "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
+      "Authorization": `Bearer ${localStorage.getItem("authToken")}`
     }
   }).then(response => {
     if (response.data.code === 10000) {
