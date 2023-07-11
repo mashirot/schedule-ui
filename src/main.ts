@@ -10,6 +10,7 @@ import { fab } from '@fortawesome/free-brands-svg-icons';
 import App from './App.vue';
 import router from './router';
 import axios from 'axios';
+import { url } from './urlConfig';
 
 const app = createApp(App);
 
@@ -25,7 +26,7 @@ library.add(fas, fab);
 app.component('font-awesome-icon', FontAwesomeIcon);
 
 // axios
-axios.defaults.baseURL = "https://api.schedule.mashiro.ski";
+axios.defaults.baseURL = url;
 axios.defaults.withCredentials = true;
 
 app.mount('#app');

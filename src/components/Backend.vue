@@ -165,6 +165,8 @@ import { reactive, ref } from 'vue';
 import Search from '@/views/Search.vue';
 import CourseForm from '@/views/CourseForm.vue';
 import moment from 'moment';
+import { url } from '@/urlConfig';
+import { sortByDayOfWeek } from '@/utils/Sort';
 
 const router = useRouter();
 const utilStore = useUtilStore();
@@ -176,7 +178,7 @@ const dialogModifyUserInfoVisible = ref(false);
 const dialogFileVisible = ref(false);
 const today = ref(moment().format("YYYY 年 MM 月 DD 日"));
 // 文件上传接口地址
-const uploadUrl = "https://api.schedule.mashiro.ski/sched/file";
+const uploadUrl = `${url}/sched/file`;
 const jwtToken = localStorage.getItem("authToken");
 
 interface Course {
@@ -191,6 +193,18 @@ interface Course {
   endWeek: number,
   oddWeek: number,
   credit: number,
+}
+
+interface CourseVo {
+  courseId: number,
+  dayOfWeek: string,
+  time: string,
+  name: string,
+  place: string,
+  teacher: string,
+  week: string,
+  oddWeek: string,
+  credit: string,
 }
 
 interface UserInfoModify {
@@ -332,12 +346,36 @@ function resetUserInfoForm() {
   });
 }
 
-// 伪退出
 function logout() {
-  router.push({ name: "login" });
-  ElMessage({
-    message: '退出成功',
-    type: 'success',
+  axios.get("/user/logout", {
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+    }
+  }).then(response => {
+    const resp = response.data;
+    if (resp.code === 10000) {
+      ElMessage({
+        message: '登录过期，请重新登陆',
+        type: 'warning',
+      });
+    } else if (resp.code === 10021) {
+      localStorage.removeItem("authToken");
+      router.push({ name: "login" });
+      ElMessage({
+        message: '退出成功',
+        type: 'success',
+      });
+    } else {
+      ElMessage({
+        message: '退出失败',
+        type: 'warning',
+      });
+    }
+  }).catch(error => {
+    ElMessage({
+      message: '系统错误',
+      type: 'error',
+    });
   });
 }
 
@@ -347,14 +385,30 @@ function getUserInfo() {
       "Authorization": `Bearer ${localStorage.getItem("authToken")}`
     }
   }).then(response => {
-    const user = response.data.data;
-    userInfo.username = user.username;
-    userInfo.termStartDate = user.termStartDate;
-    userInfo.termEndDate = user.termEndDate;
-    userInfo.currWeek = user.currWeek;
-    userInfo.apiToken = user.apiToken;
+    const resp = response.data;
+    if (resp.code === 10000) {
+      ElMessage({
+        message: '登录过期，请重新登陆',
+        type: 'warning',
+      });
+    } else if (resp.code === 10051) {
+      const user = resp.data;
+      userInfo.username = user.username;
+      userInfo.termStartDate = user.termStartDate;
+      userInfo.termEndDate = user.termEndDate;
+      userInfo.currWeek = user.currWeek;
+      userInfo.apiToken = user.apiToken;
+    } else {
+      ElMessage({
+        message: '获取个人信息失败',
+        type: 'warning',
+      });
+    }
   }).catch(error => {
-    console.log(error);
+    ElMessage({
+      message: '系统错误',
+      type: 'error',
+    });
   });
 }
 // 进入后调用一次
@@ -497,7 +551,10 @@ function getCourses(isEff: boolean) {
       });
       router.push({ name: "login" });
     } else if (response.data.code === 20011) {
-      courseStore.courseData = response.data.data;
+
+      const courses: Array<CourseVo> = response.data.data;
+      courses.sort(sortByDayOfWeek);
+      courseStore.courseData = courses;
     } else if (response.data.code === 20020) {
       ElMessage({
         message: '获取课程信息失败',

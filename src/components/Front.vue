@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" :style="{ backgroundImage: `url(${loginBgUrl})` }">
     <div class="inner-container">
       <slot></slot>
       <RouterView />
@@ -11,6 +11,7 @@
   </div>
 </template>
 <script setup lang="ts">
+import { loginBgUrl } from '@/urlConfig';
 function jump2Pixiv() {
   window.open("https://www.pixiv.net/artworks/108906379", "_blank");
 }
@@ -27,7 +28,6 @@ function jump2Github() {
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  background-image: url("../assets/loginBg.jpg");
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
